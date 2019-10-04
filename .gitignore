@@ -67,3 +67,6 @@ example.png
 tmp
 
 download
+
+serviceAccountKey.json
+cred.js

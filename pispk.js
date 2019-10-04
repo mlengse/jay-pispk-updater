@@ -8,6 +8,7 @@ const {
 module.exports = class pispk {
   constructor({ page }) {
     this.page = page
+    this.loggedIn = false
   }
 
   async waitUntilExist(selector) {
@@ -26,6 +27,7 @@ module.exports = class pispk {
       .click('#forms-login > div.login-form-footer > button')
       await this.waitUntilExist('li > ul > li > a[href="https://keluargasehat.kemkes.go.id/rawdata_survei"]')
       console.log('login')
+      this.loggedIn = true
     }
   }
 
@@ -33,7 +35,9 @@ module.exports = class pispk {
 
     let filename = path.join(__dirname, 'download', `survei-${tahun}.xlsx`)
 
-    await this.login()
+    if(!this.loggedIn) {
+      await this.login()
+    }
 
     if(await this.page.url() !== 'https://keluargasehat.kemkes.go.id/rawdata_survei'){
       await this.page.goto('https://keluargasehat.kemkes.go.id/rawdata_survei')
@@ -52,4 +56,5 @@ module.exports = class pispk {
     //console.log(`data mentah survey tahun: ${tahun} sudah didownload di: ${filename}`)
 
   }
+
 }
