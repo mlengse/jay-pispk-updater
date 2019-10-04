@@ -29,22 +29,30 @@ module.exports = class lowdbconn {
     this.db.defaults({ })
   }
 
-  upsert({ id, data }) {
-    let exists = this.db.has( id ).value()
-    if( exists ) {
-      let oldData = this.db.get( id ).value()
-      if( JSON.stringify(oldData) !== JSON.stringify(data)) {
-        data = Object.assign({}, oldData, data)
-        this.db.set( id, data ).write()
-        return 'exist but diff'
-        // return this.db.set( id, data ).write()
+  async upsert({ id, data }) {
+    try{
+      let res
+      let exists = this.db.has( id ).value()
+      if( exists ) {
+        let oldData = this.db.get( id ).value()
+        if( JSON.stringify(oldData) !== JSON.stringify(data)) {
+          data = Object.assign({}, oldData, data)
+          await this.db.set( id, data ).write()
+          res = 'exist but diff'
+          // return this.db.set( id, data ).write()
+        } else {
+          res = 'exists and same'
+        }
       } else {
-        return 'exists and same'
+        await this.db.set( id, data ).write()
+        res = 'not exists'
+        // return this.db.set( id, data ).write()
       }
-    } else {
-      this.db.set( id, data ).write()
-      return 'not exists'
-      // return this.db.set( id, data ).write()
+
+      process.stdout.write(`\r${id}\t${res}\t`)
+  
+    }catch(e){
+      console.error(e)
     }
   }
 }
