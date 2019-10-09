@@ -1,9 +1,9 @@
 const path = require('path')
 
-const { 
-  PISPK_USERNAME,
-  PISPK_PASSWORD 
-} = require('./config')
+// const { 
+//   PISPK_USERNAME,
+//   PISPK_PASSWORD 
+// } = require('./config')
 
 module.exports = class pispk {
   constructor({ page }) {
@@ -19,7 +19,8 @@ module.exports = class pispk {
   
   }
 
-  async login(username = PISPK_USERNAME, password = PISPK_PASSWORD) {
+  // async login(username = PISPK_USERNAME, password = PISPK_PASSWORD) {
+  async login(username, password) {
     if(await this.page.exists('#username')) {
       await this.page
       .insert('#username', username)

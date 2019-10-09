@@ -12,9 +12,9 @@ const navCfg = {
 }
 
 const pkm = [ 
-  'jayengan', 
+  // 'jayengan', 
 //  'purwosari', 
-//  'sibela'
+ 'sibela'
 ]
 
 const nightmareCfg = {

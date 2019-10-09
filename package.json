@@ -17,8 +17,10 @@
   },
   "homepage": "https://github.com/mlengse/jay-pispk-updater#readme",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
     "dotenv": "^8.1.0",
     "ek-excel-stream": "^1.1.3",
+    "json-2-csv": "^3.5.6",
     "lowdb": "^1.0.0",
     "mysql": "^2.17.1",
     "nightmare": "^3.0.2",

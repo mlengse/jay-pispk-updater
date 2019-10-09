@@ -40,22 +40,26 @@ const getConnection = async () => {
 const connect = async (query, value) => {
 	return await new Promise( resolve => {
 		pool.getConnection( (err, connection) => {
-      err ? console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) : '' //console.log(`connected id: ${connection.threadId}`);
-      if(value) {
-        connection.query(query, value, (err, results, fields) => {
-          err ? console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) : null;
-          connection.release()
-          resolve(results)
-        })
-  
-      } else {
-        connection.query(query, (err, results, fields) => {
-          err ? console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) : null;
-          connection.release()
-          resolve(results)
-        })
-  
-      }
+			if(err){
+				console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) //: '' //console.log(`connected id: ${connection.threadId}`);
+			} else {
+				if(value) {
+					connection.query(query, value, (err, results, fields) => {
+						err ? console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) : null;
+						connection.release()
+						resolve(results)
+					})
+		
+				} else {
+					connection.query(query, (err, results, fields) => {
+						err ? console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`) : null;
+						connection.release()
+						resolve(results)
+					})
+		
+				}
+	
+			}
 
 		})
 	

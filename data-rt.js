@@ -23,23 +23,30 @@ const { pool, connect } = require('./mysqlconn')
 
       let n = 0
 
+      let all = await connect('SELECT id, survei_id FROM pispkraw')
+
+      // if(Array.isArray(all) && all.length) for( a of all) console.log(a)
+
       for(data of datas.data) {
         n++
-        let id = data.survei_id
+        let id = data.survei_id.toString()
 
-        let ikss = await connect('SELECT id, survei_id FROM pispkraw WHERE survei_id LIKE ?', [id])
+        // let ikss = all.filter( ({ survei_id }) => survei_id.toString() === id )
+
+        // // let ikss = await connect('SELECT id, survei_id FROM pispkraw WHERE survei_id LIKE ?', [id])
 
         let iks
 
-        if(Array.isArray(ikss) && ikss.length){
-          iks = ikss[0]
-          console.log(n, iks.id, iks.survei_id)
-        } else {
+        // if(Array.isArray(ikss) && ikss.length){
+        //   iks = ikss[0]
+        //   console.log(n, iks.id, iks.survei_id)
+        // } else {
+          
           // console.log(id, 'tidak ketemu')
-          iks = await pispk.getIKSRT(data.survei_id)
-          while(iks.textStatus){
-            iks = await pispk.getIKSRT(data.survei_id)
-          }
+          // iks = await pispk.getIKSRT(data.survei_id)
+          // while(iks.textStatus){
+          //   iks = await pispk.getIKSRT(data.survei_id)
+          // }
           
           //console.log(data.nama_kk)
           //console.log(JSON.stringify(iks))
@@ -48,19 +55,16 @@ const { pool, connect } = require('./mysqlconn')
   
           console.log(data)
   
-          let res = await connect(`INSERT INTO pispkraw (survei_id, data) VALUES ("${id}", ? ) ON DUPLICATE KEY UPDATE data = ?;`, [data, data])
-  
-          console.log(JSON.stringify(res))
-  
-        }
-
-
+          connect(`INSERT INTO pispkraw (survei_id, data) VALUES ("${id}", ? ) ON DUPLICATE KEY UPDATE data = ?;`, [data, data])
+          .then( res => {
+            console.log(JSON.stringify(res))
+          })
+        // }
       }
-
       await pispk.end()
     }
 
-    pool.end()
+    //pool.end()
   
   }
   catch(err){
