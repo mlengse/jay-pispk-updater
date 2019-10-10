@@ -59,6 +59,7 @@ module.exports = class Pispk {
   }
 
   async download (){
+    let filenames = []
     try{
       if(!this.loggedIn) {
         await this.login()
@@ -79,6 +80,7 @@ module.exports = class Pispk {
         .click(downloadSelector)
         .download(path.join(__dirname, 'download', `survei-${this.pkm}-${thisYear}.xlsx`))
         // console.log(dl)
+        filenames.push(dl.path)
         spinner.succeed(`donwload pispk ${this.pkm} tahun: ${thisYear}: ${JSON.stringify(dl)}`)
       }
 
@@ -86,6 +88,9 @@ module.exports = class Pispk {
         await this.pispk.end()
         this.loggedIn = false
       }
+
+      return filenames
+
     }catch(err){
       // console.error(err)
       spinner.fail(`donwload pispk ${this.pkm} tahun: ${thisYear}: ${JSON.stringify(err)}`)

@@ -47,6 +47,14 @@ const nightmareCfg = {
   }
 }
 
+const mysqlConfig = {
+	connectionLimit: 10,
+  host: process.env.MYSQL_HOST,
+	user: process.env.MYSQL_USER,
+	password: process.env.MYSQL_PWD,
+	database: process.env.MYSQL_DB
+}
+
 module.exports = Object.assign(
   {},
   {
@@ -58,7 +66,8 @@ module.exports = Object.assign(
     puppeteerCfg,
     navCfg,
     pkms,
-    tahuns
+    tahuns,
+    mysqlConfig
   },
   process.env
 )
