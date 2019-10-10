@@ -1,5 +1,15 @@
-const path =  require('path')
 require('dotenv').config()
+
+const path =  require('path')
+const moment = require("moment");
+
+let tahuns = ['2017']
+let thisYear = moment().format("YYYY");
+
+while( thisYear !== tahuns[tahuns.length-1]) {
+  tahuns.push((Number(tahuns[tahuns.length-1]) + 1).toString())
+}
+
 const puppeteerCfg = {
   // headless: true,
   headless: false,
@@ -11,14 +21,20 @@ const navCfg = {
   waitUntil: 'networkidle0'
 }
 
-const pkm = [ 
-  // 'jayengan', 
-//  'purwosari', 
- 'sibela'
+const pkms = [ 
+  'jayengan', 
+  'purwosari', 
+  'sibela'
 ]
 
+const PISPK_URL = 'https://keluargasehat.kemkes.go.id/'
+const selectionTahun = '#select2-tahun-container'
+const inputSelection = 'body > span > span > span.select2-search.select2-search--dropdown > input'
+const downloadSelector = '#btn-download'
+
 const nightmareCfg = {
-  show: true,
+  show: false,
+  // show: true,
   width: 1900,
   //gotoTimeout: 300000,
   webPreferences: {
@@ -34,10 +50,15 @@ const nightmareCfg = {
 module.exports = Object.assign(
   {},
   {
+    PISPK_URL,
+    selectionTahun,
+    inputSelection,
+    downloadSelector,
     nightmareCfg,
     puppeteerCfg,
     navCfg,
-    pkm
+    pkms,
+    tahuns
   },
   process.env
 )

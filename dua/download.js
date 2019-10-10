@@ -1,7 +1,7 @@
 const { initPispk } = require('./browser')
 
 const Pispk = require('./pispk')
-const config = require('./config')
+const config = require('../config')
 
 const { years } = require('./time')
 

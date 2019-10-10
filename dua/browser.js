@@ -3,7 +3,7 @@ require('nightmare-inline-download')(Nightmare);
 
 const { 
   nightmareCfg,
-} = require('./config')
+} = require('../config')
 
 const initPispk = async () => {
   const page = new Nightmare(nightmareCfg)

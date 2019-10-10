@@ -1,6 +1,6 @@
 
 const Pispk = require('./pispk-puppeteer')
-const config = require('./config')
+const config = require('../config')
 const { pool, connect } = require('./mysqlconn')
   
 ;(async () => {

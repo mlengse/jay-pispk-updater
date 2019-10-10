@@ -6,7 +6,7 @@ const {
   navCfg,
   PISPK_USERNAME,
   PISPK_PASSWORD 
-} = require('./config')
+} = require('../config')
 
 module.exports = class Pispk {
   constructor() {
