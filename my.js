@@ -46,7 +46,7 @@ class My {
 
   async query(query, value) {
 
-    if( !this.connection || (this.connection && this.connection.state && this.connection.state === 'disconnected') || (this.connection && this.pool._freeConnections.indexOf(this.connection) === 0 )) {
+    while( !this.connection || (this.connection && this.connection.state && this.connection.state === 'disconnected') || (this.connection && this.pool._freeConnections.indexOf(this.connection) === 0 )) {
       await this.getConnection()
     }
     spinner.start('query')
@@ -81,10 +81,10 @@ class My {
     spinner.start('get mysql connection')
     await new Promise ( resolve => this.pool.getConnection( async (err, connection) => {
       if(err){
-        // console.error(JSON.stringify(err))
+        console.error(JSON.stringify(err))
         // spinner.info('get new connection')
-        await this.getConnection()
-        resolve()
+        // await this.getConnection()
+        // resolve()
       } else {
         // spinner.succeed(`connected ${connection.threadId}`)
         this.connection = connection

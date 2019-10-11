@@ -14,7 +14,7 @@ const {
         // await excel.toJson(filePath)
       }
 
-      // await excel.end()
+      await excel.end()
       
       // const pispk = new Pispk(pkm)
       // ;(async () => {

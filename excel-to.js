@@ -66,9 +66,9 @@ class Excell extends My {
           // console.log(kkArr)
           let kkExist = kkArr.length
 
-          spinner.start(`upsert ${this.kkTable} ${kk['SURVEI ID']}`)
   
           if(!kkExist) {
+            spinner.start(`upsert ${this.kkTable} ${kk['SURVEI ID']}`)
             this.allKK.push(kk)
             await this.upsert( this.kkTable, kk['SURVEI ID'], JSON.stringify(kk))
             // spinner.succeed(`upsert ${this.kkTable} ${kk['SURVEI ID']}`)
@@ -76,7 +76,7 @@ class Excell extends My {
 
           } else {
             // spinner.succeed(`${this.kkTable}, ${kk['SURVEI ID']} exist`)
-            spinner.succeed()
+            // spinner.succeed()
           }
   
         }
@@ -85,14 +85,14 @@ class Excell extends My {
 
       let artExist = this.allART.filter( eart => eart.id === art.id && JSON.stringify(eart) === JSON.stringify(eart)).length
       
-      spinner.start(`upsert ${this.artTable}, ${art.id}`)
       if(!artExist) {
+        spinner.start(`upsert ${this.artTable}, ${art.id}`)
         this.allART.push(art)
         await this.upsert( this.artTable, art.id, JSON.stringify(art))
         spinner.succeed()
         // spinner.succeed(`upsert ${this.artTable}, ${art.id}`)
       } else {
-        spinner.succeed()
+        // spinner.succeed()
         // spinner.succeed(`${this.artTable}, ${art.id} exist`)
       }
 
