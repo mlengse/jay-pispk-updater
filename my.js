@@ -1,5 +1,6 @@
 const mysql = require('mysql')
 // const MySQLEvents = require('@patrickwalker/mysql-events');
+const spinner = require('./spinner')
 
 const { mysqlConfig } = require('./config.js')
 
@@ -21,6 +22,12 @@ class My {
     // this.MySQLEvents = MySQLEvents
   }
 
+  async end() {
+    return await new Promise( resolve => {
+      this.pool.end( e => resolve())
+    })
+  }
+
   // async createTable() {
   //   try{
   //     console.log(this.kkTable, this.artTable)
@@ -38,42 +45,50 @@ class My {
   }
 
   async query(query, value) {
+
     if( !this.connection || (this.connection && this.connection.state && this.connection.state === 'disconnected') || (this.connection && this.pool._freeConnections.indexOf(this.connection) === 0 )) {
       await this.getConnection()
     }
-    
-    return await new Promise( resolve => {
+    spinner.start('query')
+    let results = await new Promise( resolve => {
+      let connection = this.connection
+      this.connection = false
       if(value) {
-        this.connection.query(query, value, (err, results, fields) => {
+        connection.query(query, value, (err, results, fields) => {
           if(err){
             console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`)
           }
-          this.connection.release()
+          connection.release()
           resolve(results)
         })
   
       } else {
-        this.connection.query(query, (err, results, fields) => {
+        connection.query(query, (err, results, fields) => {
           if(err){
             console.error(`${new Date()} error: ${JSON.stringify(err.stack)}`)
           }
-          this.connection.release()
+          connection.release()
           resolve(results)
         })
       }
     })
+    // spinner.succeed('query')
+    spinner.succeed()
+    return results
   }
   
   async getConnection() {
+    spinner.start('get mysql connection')
     await new Promise ( resolve => this.pool.getConnection( async (err, connection) => {
       if(err){
-        console.error(JSON.stringify(err))
-        console.log('get new connection')
+        // console.error(JSON.stringify(err))
+        // spinner.info('get new connection')
         await this.getConnection()
         resolve()
       } else {
-        console.log('connected', connection.threadId)
+        // spinner.succeed(`connected ${connection.threadId}`)
         this.connection = connection
+        spinner.succeed()
         resolve()
       }
     }))

@@ -5,6 +5,7 @@ const excelToJson = require("convert-excel-to-json");
 const excelStream = require('ek-excel-stream')
 
 const My = require('./my')
+const spinner = require('./spinner')
 
 const {
   tahuns
@@ -13,6 +14,7 @@ const {
 class Excell extends My {
   constructor( pkm ) {
     super( pkm )
+    this.pkm = pkm
     this.filePaths = fs
     .readdirSync(path.join(__dirname, 'download'))
     .filter(item => 
@@ -25,64 +27,115 @@ class Excell extends My {
     // this.my = new My(pkm)
   }
 
-  async processRow( row, kk ) {
-    
-    let headers = Object.keys(row)
-    let idKK = headers.indexOf('SUPERVISOR')
-    let headerKK = headers.filter((_, id) => id < (idKK + 1) )
-    let headerART = headers.filter((_, id) => id > (idKK) )
-
-    let art = Object.assign({}, {
-      id: `${row['SURVEI ID']}${row['NO URUT'] ? `_${row['NO URUT']}` : ''}`
-    },
-    headerART.reduce( (curr, key) => {
-      curr[key] = row[key]
-      return curr
-    }, {}))
-
-
-    // console.log(this.kkTable)
-    // const { upsert, kkTable, artTable } = this
-    if(!kk) {
-      kk = headerKK.reduce( (current, key) => {
-        current[key] = row[key]
-        return current
-      }, {})
-
-      await this.upsert( this.kkTable, kk['SURVEI ID'], JSON.stringify(kk))
-    }
-
-    await this.upsert( this.artTable, art.id, JSON.stringify(art))
-
-    return {
-      kk,
-      art
-    }
-
+  async getAll() {
+    spinner.start('get all table from mysql')
+    this.allART = [...(await this.query(`SELECT data FROM ${this.artTable}`))].map( ({data}) => JSON.parse(data))
+    this.allKK = [...(await this.query(`SELECT data FROM ${this.kkTable}`))].map( ({data}) => JSON.parse(data))
+    spinner.succeed(`get all table from mysql, kk: ${this.allKK.length}, art: ${this.allART.length}`)
   }
 
-  toStream( filePath ) {
-    let dataStream = fs.createReadStream(filePath);
-    let n = 0
-    let header = {}
-    dataStream
-    .pipe(excelStream())  // same as excel({sheetIndex: 0})
-    .on('data', async row => {
-      try{
-        n++
-        if( n === 4) {
-          header = row
-          console.log(filePath)
-        } else if ( n > 4) {
-          let Obj = {}
-          Object.keys(header).map( key => {
-            Obj[header[key]] = row[key]
-          })
-          await this.processRow( Obj )
+  async processRow( row, kk ) {
+    spinner.start(`process row ${this.pkm} ${row['SURVEI ID']}${row['NO URUT'] ? `_${row['NO URUT']}` : ''}`)
+    if(row['SURVEI ID']) {
+      let headers = Object.keys(row)
+      let idKK = headers.indexOf('SUPERVISOR')
+      let headerKK = headers.filter((_, id) => id < (idKK + 1) )
+      let headerART = headers.filter((_, id) => id > (idKK) )
+  
+      let art = Object.assign({}, {
+        id: `${row['SURVEI ID']}${row['NO URUT'] ? `_${row['NO URUT']}` : ''}`
+      },
+      headerART.reduce( (curr, key) => {
+        curr[key] = row[key]
+        return curr
+      }, {}))
+  
+  
+      // console.log(this.kkTable)
+      // const { upsert, kkTable, artTable } = this
+      if(!kk) {
+        kk = Object.assign({}, headerKK.reduce( (current, key) => {
+          if(row[key]) {
+            current[key] = row[key]
+          }
+          return current
+        }, {}))
+
+        if( kk['SURVEI ID']) {
+          let kkArr = this.allKK.filter( ekk => ekk['SURVEI ID'] === kk['SURVEI ID'] && JSON.stringify(ekk) === JSON.stringify(kk))
+          // console.log(kkArr)
+          let kkExist = kkArr.length
+
+          spinner.start(`upsert ${this.kkTable} ${kk['SURVEI ID']}`)
+  
+          if(!kkExist) {
+            this.allKK.push(kk)
+            await this.upsert( this.kkTable, kk['SURVEI ID'], JSON.stringify(kk))
+            // spinner.succeed(`upsert ${this.kkTable} ${kk['SURVEI ID']}`)
+            spinner.succeed()
+
+          } else {
+            // spinner.succeed(`${this.kkTable}, ${kk['SURVEI ID']} exist`)
+            spinner.succeed()
+          }
+  
         }
-      } catch(e) {
-        console.error(e)
+
       }
+
+      let artExist = this.allART.filter( eart => eart.id === art.id && JSON.stringify(eart) === JSON.stringify(eart)).length
+      
+      spinner.start(`upsert ${this.artTable}, ${art.id}`)
+      if(!artExist) {
+        this.allART.push(art)
+        await this.upsert( this.artTable, art.id, JSON.stringify(art))
+        spinner.succeed()
+        // spinner.succeed(`upsert ${this.artTable}, ${art.id}`)
+      } else {
+        spinner.succeed()
+        // spinner.succeed(`${this.artTable}, ${art.id} exist`)
+      }
+
+      spinner.succeed()
+      // spinner.succeed(`process row ${this.pkm} ${row['SURVEI ID']}${row['NO URUT'] ? `_${row['NO URUT']}` : ''}`)
+
+      return {
+        kk,
+        art
+      }
+    }
+  }
+
+  async toStream( filePath ) {
+    spinner.start(`${filePath} start stream`)
+    await new Promise( resolve => {
+      let dataStream = fs.createReadStream(filePath);
+      let n = 0
+      let header = {}
+      dataStream
+      .pipe(excelStream())  // same as excel({sheetIndex: 0})
+      .on('data', async row => {
+        try{
+          n++
+          if( n === 4) {
+            header = row
+            // console.log(filePath)
+          } else if ( n > 4) {
+            let Obj = {}
+            Object.keys(header).map( key => {
+              Obj[header[key]] = row[key]
+            })
+            await this.processRow( Obj )
+          }
+        } catch(e) {
+          console.error(e)
+        }
+      })
+      .on( 'end', rc => {
+        spinner.succeed(`${filePath} end stream`)
+        resolve()
+      })
+  
     })
   }
 
@@ -98,13 +151,13 @@ class Excell extends My {
       }
     });
 
-    console.log(`row length: ${Sheet1.length}`)
+    // console.log(`row length: ${Sheet1.length}`)
 
     if (Sheet1.length) {
       let idList = [...new Set(Sheet1.map(e => e['SURVEI ID']))]
       for (let i = 0; i < idList.length; i++) {
         const surveiID = idList[i];
-        console.log(`survei id: ${surveiID} ke: ${i+1}`)
+        // console.log(`survei id: ${surveiID} ke: ${i+1}`)
         let arts = Sheet1.filter( e => e['SURVEI ID'] === surveiID)
         let kk
         for( let a = 0; a < arts.length; a++){

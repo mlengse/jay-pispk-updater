@@ -22,9 +22,9 @@ const navCfg = {
 }
 
 const pkms = [ 
-  'jayengan', 
+  'sibela',
   'purwosari', 
-  'sibela'
+  'jayengan', 
 ]
 
 const PISPK_URL = 'https://keluargasehat.kemkes.go.id/'
