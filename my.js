@@ -31,8 +31,8 @@ class My {
   async createTable() {
     try{
       console.log(this.kkTable, this.artTable)
-      await this.query(`CREATE TABLE IF NOT EXISTS ${this.kkTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=23034 ;`)
-      await this.query(`CREATE TABLE IF NOT EXISTS ${this.artTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=23034 ;`)
+      await this.query(`CREATE TABLE IF NOT EXISTS ${this.kkTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id));`)
+      await this.query(`CREATE TABLE IF NOT EXISTS ${this.artTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id));`)
       this.table = true
     }catch(e){
       console.error(e)
