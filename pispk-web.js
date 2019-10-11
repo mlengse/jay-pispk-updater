@@ -80,7 +80,9 @@ module.exports = class Pispk {
         .click(downloadSelector)
         .download(path.join(__dirname, 'download', `survei-${this.pkm}-${thisYear}.xlsx`))
         // console.log(dl)
-        filenames.push(dl.path)
+        if(dl.path){
+          filenames.push(dl.path)
+        }
         spinner.succeed(`donwload pispk ${this.pkm} tahun: ${thisYear}: ${JSON.stringify(dl)}`)
       }
 
