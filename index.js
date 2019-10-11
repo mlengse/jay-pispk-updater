@@ -8,7 +8,13 @@ const {
   try {
     for( pkm of pkms) {
       const excel = new ExcelTo(pkm)
+
+      // const pispk = new Pispk(pkm)
+      // let filenames = await pispk.download()
+
       await excel.getAll()
+
+      // for( filePath of filenames) {
       for( filePath of excel.filePaths) {
         await excel.toStream(filePath)
         // await excel.toJson(filePath)
@@ -16,14 +22,6 @@ const {
 
       await excel.end()
       
-      // const pispk = new Pispk(pkm)
-      // ;(async () => {
-      //   try {
-      //     let filenames = await pispk.download()
-      //   } catch (e){
-      //     console.error(e)
-      //   }
-      // })()
       
     }
     // })
