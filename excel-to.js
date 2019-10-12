@@ -27,13 +27,6 @@ class Excell extends My {
     // this.my = new My(pkm)
   }
 
-  async getAll() {
-    spinner.start('get all table from mysql')
-    this.allART = [...(await this.query(`SELECT data FROM ${this.artTable}`))].map( ({data}) => JSON.parse(data))
-    this.allKK = [...(await this.query(`SELECT data FROM ${this.kkTable}`))].map( ({data}) => JSON.parse(data))
-    spinner.succeed(`get all table from mysql, kk: ${this.allKK.length}, art: ${this.allART.length}`)
-  }
-
   async processRow( row, kk ) {
     spinner.start(`process row ${this.pkm} ${row['SURVEI ID']}${row['NO URUT'] ? `_${row['NO URUT']}` : ''}`)
     if(row['SURVEI ID']) {

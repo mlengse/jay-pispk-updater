@@ -22,15 +22,26 @@ class My {
     // this.MySQLEvents = MySQLEvents
   }
 
-  async end() {
-    return await new Promise( resolve => {
-      this.pool.end( e => resolve())
-    })
+  // async end() {
+  //   return await new Promise( resolve => {
+  //     this.pool.end( e => resolve())
+  //   })
+  // }
+
+  async getAll() {
+    try {
+      await this.createTable()
+      spinner.start('get all table from mysql')
+      this.allART = [...(await this.query(`SELECT data FROM ${this.artTable}`))].map( ({data}) => JSON.parse(data))
+      this.allKK = [...(await this.query(`SELECT data FROM ${this.kkTable}`))].map( ({data}) => JSON.parse(data))
+      spinner.succeed(`get all table from mysql, kk: ${this.allKK.length}, art: ${this.allART.length}`)
+    }catch(e){
+      console.error(e)
+    }
   }
 
   async createTable() {
     try{
-      console.log(this.kkTable, this.artTable)
       await this.query(`CREATE TABLE IF NOT EXISTS ${this.kkTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id));`)
       await this.query(`CREATE TABLE IF NOT EXISTS ${this.artTable} (id int(10) unsigned NOT NULL AUTO_INCREMENT, survei_id varchar(10) NOT NULL, data text NOT NULL, PRIMARY KEY (id), UNIQUE KEY survei_id (survei_id));`)
       this.table = true
@@ -49,6 +60,7 @@ class My {
     while( !this.connection || (this.connection && this.connection.state && this.connection.state === 'disconnected') || (this.connection && this.pool._freeConnections.indexOf(this.connection) === 0 )) {
       await this.getConnection()
     }
+
     spinner.start('query')
     let results = await new Promise( resolve => {
       let connection = this.connection
@@ -94,28 +106,28 @@ class My {
     }))
   }
 
-  async init() {
-    await this.getConnection()
-    // if(!this.instance) {
-    //   this.instance = new MySQLEvents(this.connection, this.eventConfig);
-    //   await this.instance.start()
-    // }
+  // async init() {
+  //   await this.getConnection()
+  //   // if(!this.instance) {
+  //   //   this.instance = new MySQLEvents(this.connection, this.eventConfig);
+  //   //   await this.instance.start()
+  //   // }
 
-    // this.instance.on(this.MySQLEvents.EVENTS.CONNECTION_ERROR, async (err) => {
-    //   console.error(JSON.stringify(err))
-    //   console.log('restart instance')
-    //   await this.instance.stop()
-    //   await this.init()
-    // });
+  //   // this.instance.on(this.MySQLEvents.EVENTS.CONNECTION_ERROR, async (err) => {
+  //   //   console.error(JSON.stringify(err))
+  //   //   console.log('restart instance')
+  //   //   await this.instance.stop()
+  //   //   await this.init()
+  //   // });
 
-    // this.instance.on(this.MySQLEvents.EVENTS.ZONGJI_ERROR, async (err) => {
-    //   console.error(JSON.stringify(err))
-    //   console.log('restart instance')
-    //   await this.instance.stop()
-    //   await this.connection.release()
-    //   await this.init()
-    // });
-  }
+  //   // this.instance.on(this.MySQLEvents.EVENTS.ZONGJI_ERROR, async (err) => {
+  //   //   console.error(JSON.stringify(err))
+  //   //   console.log('restart instance')
+  //   //   await this.instance.stop()
+  //   //   await this.connection.release()
+  //   //   await this.init()
+  //   // });
+  // }
 
   // addTrigger(trigger, eventFunction) {
   //   this.instance.addTrigger( Object.assign({}, trigger,

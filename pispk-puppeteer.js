@@ -1,15 +1,22 @@
 const puppeteer = require('puppeteer');
 const queryString = require('query-string');
+const cheerio = require('cheerio')
+const spinner = require('./spinner')
+const ExcelTo = require('./excel-to')
+const config = require('./config')
 
 const { 
   puppeteerCfg,
   navCfg,
-  PISPK_USERNAME,
-  PISPK_PASSWORD 
-} = require('../config')
+} = config
 
-module.exports = class Pispk {
-  constructor() {
+module.exports = class Pispk extends ExcelTo {
+  constructor(pkm) {
+    super(pkm)
+    this.pkm = pkm
+    this.username = config[`PISPK_${this.pkm.toUpperCase()}_USERNAME`]
+    this.password = config[`PISPK_${this.pkm.toUpperCase()}_PASSWORD`]
+
     this.browser = null
     this.page = null
     this.loggedIn = false
@@ -18,21 +25,30 @@ module.exports = class Pispk {
     this.postDataJson = null
   }
 
-  async init(username = PISPK_USERNAME, password = PISPK_PASSWORD){
+  getKKLinkID ( html ) { 
+    if(html) {
+      return cheerio.load(html)('a.row-edit').attr('href')
+    }
+  }
+
+  async initPispkPP(){
+    spinner.start('login pispk via pptr')
     this.browser = await puppeteer.launch(puppeteerCfg);
     const pages = await this.browser.pages()
     this.page = pages[0]
     // this.page = await this.browser.newPage()
     await this.page.goto('https://keluargasehat.kemkes.go.id/logout', navCfg);
     await this.page.goto('https://keluargasehat.kemkes.go.id', navCfg);
-    await this.page.type('#username', username)
-    await this.page.type('#password', password)
+    await this.page.type('#username', this.username)
+    await this.page.type('#password', this.password)
     await this.page.click('#forms-login > div.login-form-footer > button')
     await this.page.waitForNavigation(navCfg)
     this.loggedIn = true
+    spinner.succeed()
   }
   
   async end() {
+    spinner.start('end pptr')
     await this.page.goto('https://keluargasehat.kemkes.go.id/logout', navCfg);
 
     await this.browser.close()
@@ -43,6 +59,7 @@ module.exports = class Pispk {
     this.recordsTotal = 0
     this.recordsFiltered = 0
     this.postDataJson = null
+    spinner.succeed()
   }
 
   async prepareRTPage() {
@@ -58,33 +75,21 @@ module.exports = class Pispk {
         this.recordsTotal = json.recordsTotal
         this.recordsFiltered = json.recordsFiltered
         
-        console.log('records total:' + this.recordsTotal)
-        console.log('records filtered:' + this.recordsFiltered)
-        console.log('data length:' + json.data.length)
+        // console.log('records total:' + this.recordsTotal)
+        // console.log('records filtered:' + this.recordsFiltered)
+        // console.log('data length:' + json.data.length)
           
       }
 
     })
 
-    console.log('goto rumah tangga page')
+    // console.log('goto rumah tangga page')
 
     await this.page.goto('https://keluargasehat.kemkes.go.id/rumah_tangga', navCfg)
   }
 
-  async getDataRumahTangga(){
-    if(!this.loggedIn) {
-      await this.init()
-    }
-
-    if(await this.page.url() !== 'https://keluargasehat.kemkes.go.id/rumah_tangga'){
-      await this.prepareRTPage()
-    }
-
-    let postDataJson = Object.assign({}, this.postDataJson, {
-      iDisplayLength: this.recordsTotal.toString()
-    })
-
-    return this.page.evaluate( aoData => {
+  async evalAjaxDataRT() {
+    return await this.page.evaluate( aoData => {
       return new Promise( ( resolve ) => {
         $.ajax({
           'dataType': 'json',
@@ -95,8 +100,41 @@ module.exports = class Pispk {
           error: (jqXHR, textStatus, errorThrown) => resolve({jqXHR, textStatus, errorThrown})
         });
       })
-    }, postDataJson)
+    }, this.postDataJson)
+  }
 
+  async getDataRumahTangga(){
+    spinner.start('get data rumah tangga')
+    if(!this.loggedIn) {
+      await this.initPispkPP()
+    }
+
+    if(await this.page.url() !== 'https://keluargasehat.kemkes.go.id/rumah_tangga'){
+      await this.prepareRTPage()
+    }
+
+    this.postDataJson = Object.assign({}, this.postDataJson, {
+      iDisplayLength: this.recordsTotal.toString()
+    })
+
+    let res = await this.evalAjaxDataRT()
+    while(res.textStatus){
+      res = await this.evalAjaxDataRT()
+    }
+    spinner.succeed()
+
+    this.dataRT = res.data.map( kk => Object.assign({}, kk, {
+      aksi: this.getKKLinkID(kk.aksi)
+    }))
+
+    for(let data of this.dataRT) {
+      console.log('-----------')
+      console.log(JSON.stringify(data))
+      console.log(JSON.stringify(Object.assign({}, Object.keys(data).reduce( (curr, key) => {
+        curr[key] = key.toLowerCase() !== 'tanggal' && parseFloat(data[key]) ? parseFloat(data[key]) : data[key]
+        return curr
+      }, {}))))
+    }
   }
 
   async getIKSRT(surveiID) {

@@ -3,7 +3,8 @@ require('dotenv').config()
 const path =  require('path')
 const moment = require("moment");
 
-let tahuns = ['2017']
+let tahuns = ['2019']
+// let tahuns = ['2017']
 let thisYear = moment().format("YYYY");
 
 while( thisYear !== tahuns[tahuns.length-1]) {
@@ -22,8 +23,8 @@ const navCfg = {
 }
 
 const pkms = [ 
-  'sibela',
-  'purwosari', 
+  // 'sibela',
+  // 'purwosari', 
   'jayengan', 
 ]
 
